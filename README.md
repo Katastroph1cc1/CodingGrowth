@@ -1,0 +1,1 @@
+I am currently in college getting my Bachelors in Computer Science. I also use Udemy during the term to enhance learning in the specific coding language or tools I am using. I did python and am currently in C++ and will be adding more do this as I do more projects and work throughout 
