@@ -1,0 +1,467 @@
+#Brandon Merrell
+#IT-140 Project
+#8/17/2025
+
+import random
+import time
+
+# Room descriptions
+room_intro = {
+    "Start Room": "You are in the Library, tall shelves with many books, all of which is scattered everywhere from the struggle.",
+    "Gallery": "You enter the Gallery, filled with old portraits and a suspicious atmosphere. One painting is tilted... that is odd.",
+    "Great Hall": "You enter the massive Great Hall, enormous and elegant. It echoes with silence, as the heavy curtains sway.",
+    "Dining Room": "The Dining Room is grand and eerie. Something feels off. A fanny pack is sitting on the table.",
+    "Kitchen": "You step into the Kitchen, and the air is heavy with tension. Some of the drawers are open, one will not budge.",
+    "Billiard Room": "The Billiard Room has a dusty pool table. Pool cues and balls are scattered across it, with something underneath.",
+    "Sun Room": "The Sun Room is peaceful but eerily empty. Blinds sway over the window, and you smell fresh plants.",
+    "Game Room": "You step into the Game Room, lit by a flickering chandelier. Vintage games are all over. A closed case sits on one.",
+    "Home Gym": "The Home Gym still has weights racked, clearly used recently. One locker is open slightly.",
+    "Garage": "The Garage is dark, and your target might be here... You hear footsteps and keys rattling. Time to end this."
+}
+
+# Room ASCII art to add a little more spice and fun to the overall feel of the game
+room_ascii = {
+    "Start Room": r"""
+  _____________________________
+ /|  _______________________  |\
+|| | |  Library - Start     | | ||
+|| | |  Shelves everywhere  | | ||
+|| | |  Papers on the floor | | ||
+||_| |_______________________| |_||
+\_|___________________________|_/
+""",
+    "Gallery": r"""
+   .-------------------------------------------------.
+  /    __________   __________   __________   ____   \
+ |    | Portrait | | Portrait | | Portrait | |    |   |
+ |    |   (1)    | |   (2)    | |   (3)    | | /| |   |
+ |    |__________| |__________| |__________| |/_|_|   |
+ |                                                 __ |
+ |   A tilted painting draws your eye...           |  ||
+ '-------------------------------------------------'`--'
+""",
+    "Great Hall": r"""
+   _______________________________________________________
+  |  ____    ____    ____    ____   Grand Hall            |
+  | |    |  |    |  |    |  |    |                          |
+  | | [] |  | [] |  | [] |  | [] |   A vast red carpet     |
+  | |____|  |____|  |____|  |____|   heavy curtains sway   |
+  |_______________________________________________________|
+""",
+    "Dining Room": r"""
+  ________________________________________________
+ |  ____________________________________________  |
+ | |  Dining Table - chairs around grand table  | |
+ | |  A fanny pack sits on the center of table  | |
+ | |____________________________________________| |
+ |________________________________________________|
+""",
+    "Kitchen": r"""
+   __________________________________________________
+  |  __________________________  ___________   ____  |
+  | |  Stove  |  Countertops   | |  Fridge  | |    | |
+  | |  [==]   |  drawers open  | |  [  ]    | |___ | |
+  | |_________|________________|_|__________|______|_|
+  |  One drawer seems jammed...                          |
+  |_____________________________________________________|
+""",
+    "Billiard Room": r"""
+    ______________________
+   /  ________________    \
+  |  |  O   O   O    |     |
+  |  |  ____________ |     |
+  |  | | Pool table |-|     |
+  |  | |  (dusty)   | |    |
+  |  | |____________| |    |
+  |  |   Something glints under the table...         |
+   \________________________________________________/
+""",
+    "Sun Room": r"""
+    _______________________________________________
+   /  / / / / / / / / / / / / / / / / / / / / / /  \
+  |    Sun Room - plants & windows, blinds sway      |
+  |    A warm light, but it feels like a stage set    |
+  |__________________________________________________|
+""",
+    "Game Room": r"""
+   ___________________________________________
+  |  __  __  __  __  __  __  __  __  __  __   |
+  | |__||__||__||__||__||__||__||__||__||__|  |
+  | |Vintage arcade and board games. A case | |
+  | | sits closed atop a retro console.     | |
+  | |_______________________________________| |
+  |___________________________________________|
+""",
+    "Home Gym": r"""
+   ______________________________________
+  |  ____    ____    ____    ____       |
+  | | [] |  | [] |  | [] |  | [] |      |
+  | |____|  |____|  |____|  |____|      |
+  |   Weights racked, one locker slightly open |
+  |__________________________________________|
+""",
+    "Garage": r"""
+   ______________________________________________
+  |   _____________    ____    ____   _________  |
+  |  |  Car Bay   |  |Tool|  |Box | | Shelves |  |
+  |  |  (dim)     |  |    |  |    | |         |  |
+  |  |____________|  |____|  |____| |_________|  |
+  |  You hear keys rattling... he's near.         |
+  |______________________________________________|
+"""
+}
+
+# Items in rooms and their ASCII art to go along with it
+room_items = {
+    "Gallery": ("Fingerprint file", "hidden behind a painting",
+                r"""
+  _________
+ /  ____   \
+|  |____|   |
+|  F I L E  |
+|  fingerprint |
+ \___________/
+"""),
+    "Billiard Room": ("Photo evidence file", "tucked under the pool table",
+                      r"""
+   ____________
+  /  ________  \
+ |  | PHOTO  |  |
+ |  |  IMG   |  |
+ |  |________|  |
+  \____________/
+"""),
+    "Dining Room": ("Bonus item: Mace", "inside fanny pack on the table",
+                    r"""
+    _______
+   /  __   \
+  |  |  |  |
+  |  |MA |  |
+  |  |CE |  |
+   \______/ 
+"""),
+    "Kitchen": ("Murder weapon", "hidden in one of the drawers",
+                r"""
+   ________
+  /  ____  \
+ |  | KNIFE |
+ |  |______|
+  \________/
+"""),
+    "Great Hall": ("Handcuffs", "visible on a side table",
+                   r"""
+   ___   ___
+  ( _ ) ( _ )
+   |_|   |_|
+    ||     ||
+"""),
+    "Sun Room": ("Bonus item: Taser", "inside a plant pot",
+                 r"""
+     ______
+    / ____ \
+   | |TAS| |
+   | |ER | |
+    \____/
+"""),
+    "Game Room": ("Your gun", "inside a case on one of the retro games",
+                  r"""
+     ______
+    / ____ \
+   | ||==|| |
+   | |____| |
+    \______/ 
+"""),
+    "Home Gym": ("Your badge", "in one of the lockers tucked away",
+                 r"""
+   _______
+  | BADGE |
+  |  .--. |
+  |  |__| |
+   \_____/
+""")
+}
+
+# Required items
+required_items = [
+    "Fingerprint file",
+    "Photo evidence file",
+    "Murder weapon",
+    "Your badge",
+    "Your gun",
+    "Handcuffs"
+]
+
+# Bonus items
+bonus_items = ["Mace", "Taser"]
+
+# Map connections (directions: north, south, east, west)
+rooms = {
+    "Start Room": {"north": "Gallery", "east": "Great Hall"},
+    "Gallery": {"south": "Start Room"},
+    "Great Hall": {"north": "Dining Room", "south": "Billiard Room", "east": "Sun Room", "west": "Start Room"},
+    "Dining Room": {"south": "Great Hall", "east": "Kitchen"},
+    "Kitchen": {"west": "Dining Room"},
+    "Billiard Room": {"north": "Great Hall"},
+    "Sun Room": {"south": "Game Room", "west": "Great Hall"},
+    "Game Room": {"north": "Sun Room", "east": "Home Gym"},
+    "Home Gym": {"north": "Garage", "west": "Game Room"},
+    "Garage": {"south": "Home Gym"}
+}
+
+myRoom = "Start Room"   # current room
+inventory = []          # stores the items you collect in the game
+lives = 3               # player lives
+
+# Helper maps to convert long room item descriptors into short inventory labels
+room_short = {
+    "Gallery": "Fingerprint file",
+    "Billiard Room": "Photo evidence file",
+    "Kitchen": "Murder weapon",
+    "Home Gym": "Your badge",
+    "Game Room": "Your gun",
+    "Great Hall": "Handcuffs",
+    "Dining Room": "Mace",
+    "Sun Room": "Taser"
+}
+
+# A function to print a separator to try and make it more appealing to the eyes
+def separate():
+    print("\n" + "-" * 68 + "\n")
+
+# Print ASCII art with optional pause
+def show_art(art, delay=0.2):
+    print(art)
+    if delay > 0:
+        time.sleep(delay)
+
+# To receive yes/no input
+def ask_yes_no(prompt):
+    while True:
+        answer = input(prompt + " (Y/N): ").strip().lower()
+        if answer in ("y", "yes"):
+            return True
+        if answer in ("n", "no"):
+            return False
+        print("Please answer 'Y' or 'N' (yes/no).")
+
+# Make movement input to full words even if user types N, S, E, W or types go before the direction
+def normalize_direction(raw):
+    if not raw:
+        return None
+    r = raw.strip().lower()
+    if r.startswith("go "):
+        r = r.replace("go ", "")
+    map_short = {"n": "north", "s": "south", "e": "east", "w": "west"}
+    if r in map_short:
+        return map_short[r]
+    if r in ("north", "south", "east", "west"):
+        return r
+    return None
+
+# Display current room with ASCII art and description
+def show_room(room_name):
+    separate()
+    ascii_art = room_ascii.get(room_name, "")
+    show_art(ascii_art, delay=0.05)
+    print(room_intro[room_name])
+    separate()
+
+# Handle searching and collecting items for the current room
+def search_room(room_name):
+    global inventory
+    if room_name not in room_items:
+        return  # nothing to find here
+    long_item = room_items[room_name]  # tuple: (short name, hiding, ascii_art)
+    name = long_item[0]
+    hiding = long_item[1]
+    art = long_item[2]
+    shortened_name = room_short.get(room_name, name)
+
+    if shortened_name in inventory:
+        print(f"You already searched and picked up the {shortened_name}.")
+        return
+
+    print(f"You search carefully and find: {name} ({hiding}).")
+    show_art(art, delay=0.02)
+    take = ask_yes_no(f"Do you want to add '{shortened_name}' to your inventory?")
+    if take:
+        # For bonus items, shorten the stored name to 'Mace' or 'Taser' to simplify checks
+        if shortened_name == "Mace":
+            inventory.append("Mace")
+            print("Mace added to inventory.")
+        elif shortened_name == "Taser":
+            inventory.append("Taser")
+            print("Taser added to inventory.")
+        else:
+            # store base labels for required items
+            inventory.append(shortened_name)
+            print(f"{shortened_name} added to inventory.")
+    else:
+        print("You leave it for now.")
+
+# Shows the player's inventory with ASCII art
+def show_inventory():
+    separate()
+    if not inventory:
+        print("Inventory: (empty)")
+    else:
+        print("Inventory:")
+        for item in inventory:
+            if item == "Mace":
+                print(" - Mace")
+            elif item == "Taser":
+                print(" - Taser")
+            elif item == "Fingerprint file":
+                print(" - Fingerprint file")
+            elif item == "Photo evidence file":
+                print(" - Photo evidence file")
+            elif item == "Murder weapon":
+                print(" - Murder weapon")
+            elif item == "Your badge":
+                print(" - Your badge")
+            elif item == "Your gun":
+                print(" - Your gun")
+            elif item == "Handcuffs":
+                print(" - Handcuffs")
+            else:
+                print(f" - {item}")
+    print(f"Lives remaining: {lives}")
+    separate()
+
+# Attempt the final confrontation in the Garage
+def attempt_arrest():
+    global lives
+    separate()
+    print("You step into the Garage. This is the moment of truth...")
+    # Check required items for what is needed
+    missing_item = [r for r in required_items if r not in inventory]
+    if missing_item:
+        # Player is not ready, items still needed, lose a life, villain escapes, and you are bumped back to Start Room
+        print("You're missing_item crucial items:", ", ".join(missing_item))
+        print("The villain notices your hesitation and dashes past you!")
+        lives -= 1
+        if lives > 0:
+            print(f"You lost a life. Lives left: {lives}. You stumble back to the Library to regroup.")
+            time.sleep(1.2)
+            return False  # not ended, continue game
+        else:
+            print("You have no lives left. The villain got away for good.")
+            return "lose"  # game over
+    else:
+        # You have all items, it will random generate an easy surrender or final encounter with bonus items. make sure you collect them
+        print("You flash your badge, show the evidence, and stand ready with your gun and handcuffs.", "'Freeze!'")
+        time.sleep(1.0)
+        surrender = random.choice([True, False])
+        if surrender:
+            print("He freezes, surprised you came to and caught up, surrendering without a fight now.")
+            print("You cuff him calmly. Finally ending the chaos of the case. The case is closed.")
+            return "win"
+        else:
+            print("He lunges at you in desperation hoping to catch you off guard!")
+            # If player has any bonus item Mace or Taser, they can subdue him and if not then you lose a life and have to try again
+            has_mace = "Mace" in inventory
+            has_taser = "Taser" in inventory
+            if has_mace or has_taser:
+                if has_mace:
+                    print("You quickly pull the mace, spraying him, causing him to stop, and you take him down!")
+                if has_taser:
+                    print("You quickly hit him with the taser, he collapses in pain!")
+                print("You press your knee on his back, handcuffing him and taking him to your car.")
+                return "win"
+            else:
+                # Player loses one life and is bumped back to Start Room to try again if lives remain
+                print("You try to defend yourself, but he's too quick, knocking you out again and fleeing the mansion.")
+                lives -= 1
+                if lives > 0:
+                    print(f"You survive but lose a life. Lives left: {lives}. You retreat to the Library to plan.")
+                    return False
+                else:
+                    print("You have no lives left. The villain escapes and the case is lost.")
+                    return "lose"
+
+#The intro to the game
+def game_intro():
+    separate()
+    print("HELLO THERE, DETECTIVE")
+    print("""
+    You came to the mansion to meet a colleague and go over case evidence in the Library.
+    The meeting goes sideways and you are knocked out and BETRAYED only to wake up alone as the suspect flees.
+    He grabbed and hid your gear and the evidence. They are scattered around the rooms. Find what you need, then stop him....if you can.
+    """)
+    separate()
+    print("Commands:")
+    print(" - Move by typing: N, S, E, W or North, South, East, West or even saying go north, go south, etc")
+    print(" - Type 'search' to inspect a room if you don't see the prompt to pick something up")
+    print(" - Type 'inventory' to view inventory and lives")
+    print(" - Type 'quit' to exit the game")
+    separate()
+
+#The main loop for the game
+def main():
+    global myRoom, lives
+    game_intro()
+    show_room(myRoom)
+    # Immediately prompt to search in the starting room (Library has no hidden item per setup)
+    while True:
+        # Show short prompt
+        command = input("What would you like to do? ").strip()
+        if not command:
+            print("Type a command (North/South/East/West/search/inventory/quit).")
+            continue
+
+        lower_case = command.lower()
+
+        # Quit
+        if lower_case in "quit":
+            print("You step away from the case. The case remains a mystery... Goodbye. For now.")
+            break
+
+        # Inventory to check what you have
+        if lower_case in ("inventory", "i"):
+            show_inventory()
+            continue
+
+        # Search the room for an item
+        if lower_case == "search":
+            search_room(myRoom)
+            continue
+
+        # Movement for the game
+        movement = normalize_direction(lower_case)
+        if movement:
+            # can move
+            if movement in rooms[myRoom]:
+                myRoom = rooms[myRoom][movement]
+                show_room(myRoom)
+                # after moving, try automatic search if the room contains an item not collected
+                # this gives the more guided experience, searching is still available
+                # but only prompt automatically if there's an item and not yet collected
+                if myRoom in room_items:
+                    short = room_short.get(myRoom)
+                    if short not in inventory:
+                        # auto-prompt the pickup
+                        search_room(myRoom)
+                # If in the Garage, handle confrontation
+                if myRoom == "Garage":
+                    result = attempt_arrest()
+                    if result == "win":
+                        print("\nYOU CAUGHT THE VILLAIN. Congratulations, detective!")
+                        break
+                    elif result == "lose":
+                        print("\nGAME OVER. Try again another time.")
+                        break
+                    else:
+                        # lost a life but still alive, return to Start Room
+                        myRoom = "Start Room"
+                        show_room(myRoom)
+                continue
+            else:
+                print("You can't go that way from here.")
+                continue
+
+        # To print when someone types the wrong command
+        print("Unknown command. Try North/South/East/West, search, inventory, or quit.")
+
+# Run the game
+if __name__ == "__main__":
+    main()
